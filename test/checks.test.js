@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import { auditRepository, formatMarkdown, formatText } from "../src/checks.js";
+
+const cliPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../src/cli.js");
 
 function temporaryRepository() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "shinystack-"));
@@ -53,4 +57,23 @@ test("text and markdown output include the score and check labels", () => {
   assert.match(formatText(report), /README with setup instructions/);
   assert.match(formatMarkdown(report), /\| Status \| Check \| Details \|/);
   assert.match(formatMarkdown(report), /README with setup instructions/);
+});
+
+test("fail-under enforces a minimum score without requiring every check", () => {
+  const root = temporaryRepository();
+  writeFile(root, "README.md");
+
+  const passing = spawnSync(process.execPath, [cliPath, "--path", root, "--fail-under", "9"], { encoding: "utf8" });
+  const failing = spawnSync(process.execPath, [cliPath, "--path", root, "--fail-under", "10"], { encoding: "utf8" });
+
+  assert.equal(passing.status, 0);
+  assert.equal(failing.status, 1);
+  assert.match(failing.stdout, /Score: 1\/11 checks passed/);
+});
+
+test("fail-under rejects values outside the percentage range", () => {
+  const result = spawnSync(process.execPath, [cliPath, "--fail-under", "101"], { encoding: "utf8" });
+
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /--fail-under must be an integer from 0 to 100/);
 });
