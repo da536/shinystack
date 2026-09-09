@@ -77,3 +77,16 @@ test("fail-under rejects values outside the percentage range", () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, /--fail-under must be an integer from 0 to 100/);
 });
+test("markdown is accepted as an alias for md", () => {
+       const root = temporaryRepository();
+       writeFile(root, "README.md");
+
+       const result = spawnSync(
+         process.execPath,
+         [cliPath, "--path", root, "--format", "markdown"],
+         { encoding: "utf8" }
+       );
+
+       assert.equal(result.status, 0);
+       assert.match(result.stdout, /\| Status \| Check \| Details \|/);
+     });
