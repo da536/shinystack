@@ -47,6 +47,12 @@ Make a failed check fail the command:
 node src/cli.js --strict
 ```
 
+Enforce a score threshold in CI while allowing a few checks to remain incomplete:
+
+```bash
+node src/cli.js --fail-under 80
+```
+
 ## Checks
 
 The first release checks for:
@@ -64,6 +70,8 @@ The first release checks for:
 - Project package or build metadata
 
 ShinyStack reports findings; it does not modify the repository being audited.
+
+The command exits with code `1` when `--strict` finds an incomplete check or when the score is below `--fail-under`. This makes it suitable for a required CI check.
 
 ## Contributing
 

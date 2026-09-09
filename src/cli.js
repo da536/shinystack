@@ -15,13 +15,14 @@ Options:
   --path <directory>       Repository to audit (default: current directory)
   --format <text|json|md>  Output format (default: text)
   --strict                 Exit with code 1 when any check fails
+  --fail-under <percent>   Exit with code 1 when the score is below this percentage
   --version                Print the version
   --help                   Show this help
 `;
 }
 
 function parseArgs(argv) {
-  const options = { repositoryPath: process.cwd(), format: "text", strict: false };
+  const options = { repositoryPath: process.cwd(), format: "text", strict: false, failUnder: null };
 
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
@@ -32,6 +33,14 @@ function parseArgs(argv) {
       options.version = true;
     } else if (argument === "--strict") {
       options.strict = true;
+    } else if (argument === "--fail-under") {
+      const value = argv[index + 1];
+      const threshold = Number(value);
+      if (!value || value.startsWith("-") || !Number.isInteger(threshold) || threshold < 0 || threshold > 100) {
+        throw new Error("--fail-under must be an integer from 0 to 100.");
+      }
+      options.failUnder = threshold;
+      index += 1;
     } else if (argument === "--path" || argument === "-p") {
       const value = argv[index + 1];
       if (!value || value.startsWith("-")) throw new Error("--path needs a directory.");
@@ -83,7 +92,9 @@ export async function main(argv = process.argv.slice(2)) {
       : formatText(report);
 
   console.log(output);
-  return options.strict && report.passed !== report.total ? 1 : 0;
+  const failedPolicy = options.strict && report.passed !== report.total;
+  const failedThreshold = options.failUnder !== null && report.score < options.failUnder;
+  return failedPolicy || failedThreshold ? 1 : 0;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
