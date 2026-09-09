@@ -1,0 +1,32 @@
+{
+  "name": "shinystack",
+  "version": "0.1.0",
+  "description": "A dependency-free CLI that audits open-source repository readiness.",
+  "type": "module",
+  "bin": {
+    "shinystack": "src/cli.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
+    "SECURITY.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "check": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "open-source",
+    "github",
+    "cli",
+    "repository",
+    "maintainers"
+  ],
+  "license": "MIT"
+}
